@@ -412,7 +412,7 @@ export class Task extends EventEmitter<TaskEvents> implements TaskLike {
 
 		this.urlContentFetcher = new UrlContentFetcher(provider.context)
 		this.browserSession = new BrowserSession(provider.context)
-		this.diffEnabled = enableDiff
+		this.diffEnabled = getActiveToolUseStyle(apiConfiguration) === "xml" /*kilocode_change*/ || enableDiff
 		this.fuzzyMatchThreshold = fuzzyMatchThreshold
 		this.consecutiveMistakeLimit = consecutiveMistakeLimit ?? DEFAULT_CONSECUTIVE_MISTAKE_LIMIT
 		this.providerRef = new WeakRef(provider)

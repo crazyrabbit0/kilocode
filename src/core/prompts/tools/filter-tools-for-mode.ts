@@ -97,18 +97,6 @@ export function filterNativeToolsForMode(
 		allowedToolNames.delete("run_slash_command")
 	}
 
-	// Conditionally exclude run_slash_command if experiment is not enabled
-	if (!experiments?.runSlashCommand) {
-		allowedToolNames.delete("run_slash_command")
-	}
-
-	// Conditionally exclude apply_diff if disabled in settings
-	if (state?.apiConfiguration?.diffEnabled != true) {
-		allowedToolNames.delete("apply_diff")
-	} else {
-		allowedToolNames.add("search_and_replace")
-	}
-
 	// Conditionally exclude browser_action if disabled in settings
 	if (
 		settings?.browserToolEnabled === false ||
@@ -120,10 +108,15 @@ export function filterNativeToolsForMode(
 	// kilocode_change start
 	if (state && isFastApplyAvailable(state)) {
 		// When Fast Apply is enabled, disable traditional editing tools
-		const traditionalEditingTools = ["apply_diff", "write_to_file", "insert_content"]
+		const traditionalEditingTools = ["apply_diff", "write_to_file", "insert_content", "search_and_replace"]
 		traditionalEditingTools.forEach((tool) => allowedToolNames.delete(tool))
 	} else {
 		allowedToolNames.delete("edit_file")
+		if (state && state.diffEnabled) {
+			allowedToolNames.delete("search_and_replace")
+		} else {
+			allowedToolNames.delete("apply_diff")
+		}
 	}
 	// kilocode_change end
 

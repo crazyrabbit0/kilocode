@@ -383,6 +383,7 @@ export type ExtensionState = Pick<
 	| "terminalZdotdir"
 	| "terminalCompressProgressBar"
 	| "diagnosticsEnabled"
+	| "diffEnabled"
 	| "fuzzyMatchThreshold"
 	| "morphApiKey" // kilocode_change: Morph fast apply - global setting
 	| "fastApplyModel" // kilocode_change: Fast Apply model selection

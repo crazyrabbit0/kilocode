@@ -116,10 +116,19 @@ export class NativeToolCallParser {
 				case "delete_file":
 				case "new_rule":
 				case "report_bug":
-				case "apply_diff":
+				case "search_and_replace":
 					nativeArgs = args
 					break
 				// kilocode_change end
+
+				case "apply_diff":
+					if (args.path !== undefined && args.diff !== undefined) {
+						nativeArgs = {
+							path: args.path,
+							diff: args.diff,
+						} as NativeArgsFor<TName>
+					}
+					break
 
 				case "ask_followup_question":
 					if (args.question !== undefined && args.follow_up !== undefined) {

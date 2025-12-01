@@ -181,6 +181,7 @@ export const globalSettingsSchema = z.object({
 	diagnosticsEnabled: z.boolean().optional(),
 
 	rateLimitSeconds: z.number().optional(),
+	diffEnabled: z.boolean().optional(),
 	fuzzyMatchThreshold: z.number().optional(),
 	experiments: experimentsSchema.optional(),
 
@@ -378,6 +379,7 @@ export const EVALS_SETTINGS: RooCodeSettings = {
 
 	diagnosticsEnabled: true,
 
+	diffEnabled: false, // kilocode_change: true=>false
 	fuzzyMatchThreshold: 1,
 
 	enableCheckpoints: false,

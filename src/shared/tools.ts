@@ -292,12 +292,14 @@ export const TOOL_GROUPS: Record<ToolGroup, ToolGroupConfig> = {
 	edit: {
 		tools: [
 			"apply_diff",
-			"search_and_replace", // kilocode_change
-			"edit_file", // kilocode_change: Morph fast apply
+			// kilocode_change start
+			"search_and_replace",
+			"edit_file",
+			"delete_file",
+			"new_rule",
+			// kilocode_change end
 			"write_to_file",
-			"delete_file", // kilocode_change
 			"insert_content",
-			"new_rule", // kilocode_change
 			"generate_image",
 		],
 	},

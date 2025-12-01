@@ -13,6 +13,7 @@ export class SettingsSyncService {
 		"deniedCommands",
 		"autoApprovalEnabled",
 		"fuzzyMatchThreshold",
+		"diffEnabled",
 		"directoryContextAddedContext",
 		"language",
 		"customModes",

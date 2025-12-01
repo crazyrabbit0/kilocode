@@ -49,7 +49,6 @@ import { newRuleTool } from "../tools/kilocode/newRuleTool"
 import { reportBugTool } from "../tools/kilocode/reportBugTool"
 import { condenseTool } from "../tools/kilocode/condenseTool"
 import { searchAndReplaceTool } from "../tools/kilocode/searchAndReplaceTool"
-import { getActiveToolUseStyle } from "../../api/providers/kilocode/nativeToolCallHelpers"
 import { captureAskApproval } from "./kilocode/captureAskApprovalEvent"
 
 /**
@@ -226,6 +225,8 @@ export async function presentAssistantMessage(cline: Task) {
 					case "insert_content":
 						return `[${block.name} for '${block.params.path}']`
 					// kilocode_change start
+					case "search_and_replace":
+						return `[${block.name} for '${block.params.path}']`
 					case "edit_file":
 						return `[${block.name} for '${block.params.target_file}']`
 					case "delete_file":
@@ -509,7 +510,10 @@ export async function presentAssistantMessage(cline: Task) {
 					block.name as ToolName,
 					mode ?? defaultModeSlug,
 					customModes ?? [],
-					{ apply_diff: cline.diffEnabled },
+					{
+						apply_diff:
+							!isNative /*kilocode_change: apply_diff always available for XML*/ || cline.diffEnabled,
+					},
 					block.params,
 				)
 			} catch (error) {
@@ -579,14 +583,17 @@ export async function presentAssistantMessage(cline: Task) {
 					})
 					break
 				case "apply_diff": {
-					await checkpointSaveAndMark(cline)
+					// await checkpointSaveAndMark(cline) // kilocode_change
 
-					// kilocode_change start: use search and replace tool
-					if (isNative) {
-						await searchAndReplaceTool(cline, block, askApproval, handleError, pushToolResult)
+					if (isNative /*kilocode_change*/) {
+						await applyDiffToolClass.handle(cline, block as ToolUse<"apply_diff">, {
+							askApproval,
+							handleError,
+							pushToolResult,
+							removeClosingTag,
+						})
 						break
 					}
-					// kilocode_change end
 
 					// Get the provider and state to check experiment settings
 					const provider = cline.providerRef.deref()
@@ -622,6 +629,9 @@ export async function presentAssistantMessage(cline: Task) {
 					})
 					break
 				// kilocode_change start: Morph fast apply
+				case "search_and_replace":
+					await searchAndReplaceTool(cline, block, askApproval, handleError, pushToolResult)
+					break
 				case "edit_file":
 					await editFileTool(cline, block, askApproval, handleError, pushToolResult, removeClosingTag)
 					break

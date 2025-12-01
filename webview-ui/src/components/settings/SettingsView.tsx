@@ -179,6 +179,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		browserViewportSize,
 		enableCheckpoints,
 		checkpointTimeout,
+		diffEnabled,
 		experiments,
 		morphApiKey, // kilocode_change
 		fastApplyModel, // kilocode_change: Fast Apply model selection
@@ -496,6 +497,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 					soundVolume: soundVolume ?? 0.5,
 					ttsEnabled,
 					ttsSpeed,
+					diffEnabled: diffEnabled ?? false, // kilocode_change: true=>false
 					enableCheckpoints: enableCheckpoints ?? false,
 					checkpointTimeout: checkpointTimeout ?? DEFAULT_CHECKPOINT_TIMEOUT_SECONDS,
 					browserViewportSize: browserViewportSize ?? "900x600",

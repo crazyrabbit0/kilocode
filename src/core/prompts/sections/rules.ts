@@ -19,7 +19,6 @@ function getEditingInstructions(
 	codeIndexManager: CodeIndexManager | undefined,
 	settings: SystemPromptSettings | undefined,
 	diffStrategy?: DiffStrategy,
-	clineProviderState?: ClineProviderState, // kilocode_change
 ): string {
 	// Get available editing tools from the edit group
 	const availableEditTools = getAvailableToolsInGroup(
@@ -47,7 +46,11 @@ function getEditingInstructions(
 	// Collect available editing tools
 	if (hasApplyDiff) {
 		availableTools.push("apply_diff (for surgical edits - targeted changes to specific lines or functions)")
+		// kilocode_change start
+	} else if (availableEditTools.includes("search_and_replace")) {
+		availableTools.push("search_and_replace (for surgical edits - targeted changes to specific lines or functions)")
 	}
+	// kilocode_change end
 	if (hasWriteToFile) {
 		availableTools.push("write_to_file (for creating new files or complete file rewrites)")
 	}
@@ -136,6 +139,10 @@ export function getRulesSection(
 	let editingToolsRef = ""
 	if (hasApplyDiff && hasWriteToFile) {
 		editingToolsRef = "apply_diff or write_to_file"
+		// kilocode_change start
+	} else if (availableEditTools.includes("search_and_replace") && hasWriteToFile) {
+		editingToolsRef = "search_and_replace or write_to_file"
+		// kilocode_change end
 	} else if (hasApplyDiff) {
 		editingToolsRef = "apply_diff"
 	} else if (hasWriteToFile) {
