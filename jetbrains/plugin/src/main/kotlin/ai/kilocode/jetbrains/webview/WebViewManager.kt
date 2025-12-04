@@ -314,9 +314,6 @@ class WebViewManager(var project: Project) : Disposable, ThemeChangeListener {
     fun updateWebViewHtml(data: WebviewHtmlUpdateData) {
         data.htmlContent = data.htmlContent.replace("/jetbrains/resources/kilocode/", "./")
         data.htmlContent = data.htmlContent.replace("<html lang=\"en\">", "<html lang=\"en\" style=\"background: var(--vscode-sideBar-background);\">")
-        // Replace index.css/index.js with main.css/main.js to match actual build output
-        data.htmlContent = data.htmlContent.replace("assets/index.css", "assets/main.css")
-        data.htmlContent = data.htmlContent.replace("assets/index.js", "assets/main.js")
         val encodedState = getLatestWebView()?.state.toString().replace("\"", "\\\"")
         val mRst = """<script\s+nonce="([A-Za-z0-9]{32})">""".toRegex().find(data.htmlContent)
         val str = mRst?.value ?: ""
@@ -381,9 +378,7 @@ class WebViewManager(var project: Project) : Disposable, ThemeChangeListener {
                         """,
         )
 
-        logger.info("=== Received HTML update event ===")
-        logger.info("Handle: ${data.handle}")
-        logger.info("HTML length: ${data.htmlContent.length}")
+        logger.info("Received HTML update event: handle=${data.handle}, html length: ${data.htmlContent.length}")
 
         val webView = getLatestWebView()
 
@@ -391,23 +386,20 @@ class WebViewManager(var project: Project) : Disposable, ThemeChangeListener {
             try {
                 // If HTTP server is running
                 if (resourceRootDir != null) {
-                    logger.info("Resource root directory is set: ${resourceRootDir?.pathString}")
-                    
                     // Generate unique file name for WebView
                     val filename = "index.html"
 
                     // Save HTML content to file
-                    val savedPath = saveHtmlToResourceDir(data.htmlContent, filename)
-                    logger.info("HTML saved to: ${savedPath?.pathString}")
+                    saveHtmlToResourceDir(data.htmlContent, filename)
 
                     // Use HTTP URL to load WebView content
                     val url = "http://localhost:12345/$filename"
-                    logger.info("Loading WebView via HTTP URL: $url")
+                    logger.info("Load WebView HTML content via HTTP: $url")
 
                     webView.loadUrl(url)
                 } else {
                     // Fallback to direct HTML loading
-                    logger.warn("Resource root directory is NULL - loading HTML content directly")
+                    logger.warn("HTTP server not running or resource directory not set, loading HTML content directly")
                     webView.loadHtml(data.htmlContent)
                 }
 
@@ -560,12 +552,8 @@ class WebViewInstance(
     fun sendThemeConfigToWebView(themeConfig: JsonObject, bodyThemeClass: String) {
         currentThemeConfig = themeConfig
         this.bodyThemeClass = bodyThemeClass
-        if (isDisposed) {
-            logger.warn("WebView has been disposed, cannot send theme config")
-            return
-        }
-        if (!isPageLoaded) {
-            logger.debug("WebView page not yet loaded, theme will be injected after page load")
+        if (isDisposed or !isPageLoaded) {
+            logger.warn("WebView has been disposed or not loaded, cannot send theme config:$isDisposed,$isPageLoaded")
             return
         }
         injectTheme()
