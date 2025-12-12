@@ -152,6 +152,7 @@ export class GhostInlineCompletionProvider implements vscode.InlineCompletionIte
 	private debounceDelayMs: number = INITIAL_DEBOUNCE_DELAY_MS
 	private latencyHistory: number[] = []
 	private telemetry: AutocompleteTelemetry | null
+	private lastSuggestionLanguageId: string | undefined
 
 	constructor(
 		context: vscode.ExtensionContext,
@@ -188,7 +189,7 @@ export class GhostInlineCompletionProvider implements vscode.InlineCompletionIte
 		this.recentlyEditedTracker = new RecentlyEditedTracker(ide)
 
 		this.acceptedCommand = vscode.commands.registerCommand(INLINE_COMPLETION_ACCEPTED_COMMAND, () =>
-			this.telemetry?.captureAcceptSuggestion(),
+			this.telemetry?.captureAcceptSuggestion(this.lastSuggestionLanguageId),
 		)
 	}
 
@@ -391,6 +392,7 @@ export class GhostInlineCompletionProvider implements vscode.InlineCompletionIte
 
 			if (matchingResult !== null) {
 				this.telemetry?.captureCacheHit(matchingResult.matchType, telemetryContext, matchingResult.text.length)
+				this.lastSuggestionLanguageId = document.languageId
 				return stringToInlineCompletions(matchingResult.text, position)
 			}
 
@@ -410,6 +412,7 @@ export class GhostInlineCompletionProvider implements vscode.InlineCompletionIte
 			const cachedResult = findMatchingSuggestion(prefix, suffix, this.suggestionsHistory)
 			if (cachedResult) {
 				this.telemetry?.captureLlmSuggestionReturned(telemetryContext, cachedResult.text.length)
+				this.lastSuggestionLanguageId = document.languageId
 			}
 
 			return stringToInlineCompletions(cachedResult?.text ?? "", position)
