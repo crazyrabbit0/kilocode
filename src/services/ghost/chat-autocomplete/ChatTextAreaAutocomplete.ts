@@ -3,6 +3,7 @@ import { GhostModel } from "../GhostModel"
 import { ProviderSettingsManager } from "../../../core/config/ProviderSettingsManager"
 import { VisibleCodeContext } from "../types"
 import { ApiStreamChunk } from "../../../api/transform/stream"
+import { ChatTextAreaAutocompleteTelemetry, ChatAutocompleteContext } from "./ChatTextAreaAutocompleteTelemetry"
 
 /**
  * Service for providing FIM-based autocomplete suggestions in ChatTextArea
@@ -10,10 +11,12 @@ import { ApiStreamChunk } from "../../../api/transform/stream"
 export class ChatTextAreaAutocomplete {
 	private model: GhostModel
 	private providerSettingsManager: ProviderSettingsManager
+	private telemetry: ChatTextAreaAutocompleteTelemetry
 
 	constructor(providerSettingsManager: ProviderSettingsManager) {
 		this.model = new GhostModel()
 		this.providerSettingsManager = providerSettingsManager
+		this.telemetry = new ChatTextAreaAutocompleteTelemetry()
 	}
 
 	async initialize(): Promise<boolean> {
@@ -29,15 +32,33 @@ export class ChatTextAreaAutocomplete {
 	}
 
 	async getCompletion(userText: string, visibleCodeContext?: VisibleCodeContext): Promise<{ suggestion: string }> {
+		const startTime = Date.now()
+		const hasClipboardContext = !!(await this.getClipboardContext())
+		const hasVisibleCodeContext = !!(visibleCodeContext && visibleCodeContext.editors.length > 0)
+
+		// Build context for telemetry
+		const context: ChatAutocompleteContext = {
+			modelId: this.model.getModelName(),
+			provider: this.model.getProviderDisplayName(),
+			usedFim: false, // Will be updated below
+			hasVisibleCodeContext,
+			hasClipboardContext,
+		}
+
+		// Capture suggestion requested
+		this.telemetry.captureSuggestionRequested(context, userText.length)
+
 		if (!this.model.loaded) {
 			const loaded = await this.initialize()
 			if (!loaded) {
+				this.telemetry.captureSuggestionFiltered("model_not_loaded", context)
 				return { suggestion: "" }
 			}
 		}
 
 		// Check if model has valid credentials (but don't require FIM)
 		if (!this.model.hasValidCredentials()) {
+			this.telemetry.captureSuggestionFiltered("no_credentials", context)
 			return { suggestion: "" }
 		}
 
@@ -46,26 +67,64 @@ export class ChatTextAreaAutocomplete {
 
 		let response = ""
 
-		// Use FIM if supported, otherwise fall back to chat-based completion
-		if (this.model.supportsFim()) {
-			await this.model.generateFimResponse(prefix, suffix, (chunk) => {
-				response += chunk
-			})
-		} else {
-			// Fall back to chat-based completion for models without FIM support
-			const systemPrompt = this.getChatSystemPrompt()
-			const userPrompt = this.getChatUserPrompt(prefix)
+		try {
+			// Use FIM if supported, otherwise fall back to chat-based completion
+			if (this.model.supportsFim()) {
+				context.usedFim = true
+				await this.model.generateFimResponse(prefix, suffix, (chunk) => {
+					response += chunk
+				})
+			} else {
+				context.usedFim = false
+				// Fall back to chat-based completion for models without FIM support
+				const systemPrompt = this.getChatSystemPrompt()
+				const userPrompt = this.getChatUserPrompt(prefix)
 
-			await this.model.generateResponse(systemPrompt, userPrompt, (chunk) => {
-				if (chunk.type === "text") {
-					response += chunk.text
+				await this.model.generateResponse(systemPrompt, userPrompt, (chunk) => {
+					if (chunk.type === "text") {
+						response += chunk.text
+					}
+				})
+			}
+
+			const latencyMs = Date.now() - startTime
+
+			// Capture successful LLM request
+			this.telemetry.captureLlmRequestCompleted(
+				{
+					latencyMs,
+					// Token counts not available from current API
+				},
+				context,
+			)
+
+			const cleanedSuggestion = this.cleanSuggestion(response, userText)
+
+			// Track if suggestion was filtered or returned
+			if (!cleanedSuggestion) {
+				if (!response.trim()) {
+					this.telemetry.captureSuggestionFiltered("empty_response", context)
+				} else if (this.isUnwantedSuggestion(response.trim())) {
+					this.telemetry.captureSuggestionFiltered("unwanted_pattern", context)
+				} else {
+					this.telemetry.captureSuggestionFiltered("too_short", context)
 				}
-			})
+			} else {
+				this.telemetry.captureSuggestionReturned(context, cleanedSuggestion.length)
+			}
+
+			return { suggestion: cleanedSuggestion }
+		} catch (error) {
+			const latencyMs = Date.now() - startTime
+			this.telemetry.captureLlmRequestFailed(
+				{
+					latencyMs,
+					error: error instanceof Error ? error.message : String(error),
+				},
+				context,
+			)
+			return { suggestion: "" }
 		}
-
-		const cleanedSuggestion = this.cleanSuggestion(response, userText)
-
-		return { suggestion: cleanedSuggestion }
 	}
 
 	/**

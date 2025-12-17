@@ -33,6 +33,15 @@ export enum TelemetryEventName {
 	AUTOCOMPLETE_ACCEPT_SUGGESTION = "Autocomplete Accept Suggestion",
 	AUTOCOMPLETE_SUGGESTION_FILTERED = "Autocomplete Suggestion Filtered",
 
+	// Chat textarea autocomplete events
+	CHAT_AUTOCOMPLETE_SUGGESTION_REQUESTED = "Chat Autocomplete Suggestion Requested",
+	CHAT_AUTOCOMPLETE_LLM_REQUEST_COMPLETED = "Chat Autocomplete LLM Request Completed",
+	CHAT_AUTOCOMPLETE_LLM_REQUEST_FAILED = "Chat Autocomplete LLM Request Failed",
+	CHAT_AUTOCOMPLETE_SUGGESTION_RETURNED = "Chat Autocomplete Suggestion Returned",
+	CHAT_AUTOCOMPLETE_SUGGESTION_FILTERED = "Chat Autocomplete Suggestion Filtered",
+	CHAT_AUTOCOMPLETE_SUGGESTION_ACCEPTED = "Chat Autocomplete Suggestion Accepted",
+	CHAT_AUTOCOMPLETE_SUGGESTION_DISMISSED = "Chat Autocomplete Suggestion Dismissed",
+
 	CHECKPOINT_FAILURE = "Checkpoint Failure",
 	TOOL_ERROR = "Tool Error",
 	MAX_COMPLETION_TOKENS_REACHED_ERROR = "Max Completion Tokens Reached Error",
@@ -224,6 +233,13 @@ export const rooCodeTelemetryEventSchema = z.discriminatedUnion("type", [
 			TelemetryEventName.AUTOCOMPLETE_SUGGESTION_CACHE_HIT, // kilocode_change
 			TelemetryEventName.AUTOCOMPLETE_ACCEPT_SUGGESTION, // kilocode_change
 			TelemetryEventName.AUTOCOMPLETE_SUGGESTION_FILTERED, // kilocode_change
+			TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_REQUESTED, // kilocode_change
+			TelemetryEventName.CHAT_AUTOCOMPLETE_LLM_REQUEST_COMPLETED, // kilocode_change
+			TelemetryEventName.CHAT_AUTOCOMPLETE_LLM_REQUEST_FAILED, // kilocode_change
+			TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_RETURNED, // kilocode_change
+			TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_FILTERED, // kilocode_change
+			TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_ACCEPTED, // kilocode_change
+			TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_DISMISSED, // kilocode_change
 			TelemetryEventName.WEBVIEW_MEMORY_USAGE, // kilocode_change
 			TelemetryEventName.AUTO_PURGE_STARTED, // kilocode_change
 			TelemetryEventName.AUTO_PURGE_COMPLETED, // kilocode_change
