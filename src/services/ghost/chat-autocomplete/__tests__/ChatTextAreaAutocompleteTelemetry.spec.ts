@@ -120,9 +120,9 @@ describe("ChatTextAreaAutocompleteTelemetry", () => {
 		})
 	})
 
-	describe("captureRequestRejected", () => {
-		it("should capture request rejected event with model_not_loaded reason", () => {
-			telemetry.captureRequestRejected("model_not_loaded", mockContext)
+	describe("captureSuggestionFiltered", () => {
+		it("should capture filtered event with model_not_loaded reason", () => {
+			telemetry.captureSuggestionFiltered("model_not_loaded", mockContext)
 
 			expect(mockCaptureEvent).toHaveBeenCalledWith(TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_FILTERED, {
 				reason: "model_not_loaded",
@@ -132,8 +132,8 @@ describe("ChatTextAreaAutocompleteTelemetry", () => {
 			})
 		})
 
-		it("should capture request rejected event with no_credentials reason", () => {
-			telemetry.captureRequestRejected("no_credentials", mockContext)
+		it("should capture filtered event with no_credentials reason", () => {
+			telemetry.captureSuggestionFiltered("no_credentials", mockContext)
 
 			expect(mockCaptureEvent).toHaveBeenCalledWith(TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_FILTERED, {
 				reason: "no_credentials",
@@ -142,9 +142,7 @@ describe("ChatTextAreaAutocompleteTelemetry", () => {
 				usedFim: true,
 			})
 		})
-	})
 
-	describe("captureSuggestionFiltered", () => {
 		it("should capture filtered event with empty_response reason", () => {
 			telemetry.captureSuggestionFiltered("empty_response", mockContext)
 
