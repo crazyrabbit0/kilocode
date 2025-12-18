@@ -111,14 +111,34 @@ export class ChatTextAreaAutocompleteTelemetry {
 	}
 
 	/**
-	 * Capture when a suggestion is filtered out by post-processing.
-	 * This happens when the suggestion is empty, contains unwanted patterns, or fails validation.
+	 * Capture when a suggestion request is rejected before making an LLM call.
+	 * This happens when preconditions aren't met (model not loaded, no credentials, etc).
+	 *
+	 * @param reason - The reason the request was rejected
+	 * @param context - The chat autocomplete context
+	 */
+	public captureRequestRejected(
+		reason: "model_not_loaded" | "no_credentials",
+		context: ChatAutocompleteContext,
+	): void {
+		this.captureEvent(TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_FILTERED, {
+			reason,
+			modelId: context.modelId,
+			provider: context.provider,
+			usedFim: context.usedFim,
+		})
+	}
+
+	/**
+	 * Capture when a suggestion is filtered out after receiving an LLM response.
+	 * This happens when the LLM response is empty, contains unwanted patterns, or fails validation.
+	 * "Filtered" means we got a response from the LLM but decided not to show it to the user.
 	 *
 	 * @param reason - The reason the suggestion was filtered out
 	 * @param context - The chat autocomplete context
 	 */
 	public captureSuggestionFiltered(
-		reason: "empty_response" | "unwanted_pattern" | "too_short" | "model_not_loaded" | "no_credentials",
+		reason: "empty_response" | "unwanted_pattern" | "too_short",
 		context: ChatAutocompleteContext,
 	): void {
 		this.captureEvent(TelemetryEventName.CHAT_AUTOCOMPLETE_SUGGESTION_FILTERED, {

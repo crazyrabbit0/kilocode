@@ -51,14 +51,14 @@ export class ChatTextAreaAutocomplete {
 		if (!this.model.loaded) {
 			const loaded = await this.initialize()
 			if (!loaded) {
-				this.telemetry.captureSuggestionFiltered("model_not_loaded", context)
+				this.telemetry.captureRequestRejected("model_not_loaded", context)
 				return { suggestion: "" }
 			}
 		}
 
 		// Check if model has valid credentials (but don't require FIM)
 		if (!this.model.hasValidCredentials()) {
-			this.telemetry.captureSuggestionFiltered("no_credentials", context)
+			this.telemetry.captureRequestRejected("no_credentials", context)
 			return { suggestion: "" }
 		}
 
