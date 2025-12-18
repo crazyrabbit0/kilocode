@@ -1,5 +1,15 @@
 # kilo-code
 
+## 4.140.0
+
+### Minor Changes
+
+- [#4538](https://github.com/Kilo-Org/kilocode/pull/4538) [`459b95c`](https://github.com/Kilo-Org/kilocode/commit/459b95cbf78de10fce597e3467120e52020d1114) Thanks [@chrarnoldus](https://github.com/chrarnoldus)! - Added gemini-3-flash-preview model
+
+### Patch Changes
+
+- [#4228](https://github.com/Kilo-Org/kilocode/pull/4228) [`a128228`](https://github.com/Kilo-Org/kilocode/commit/a128228b3649924ad1fd88d040a79c6963a250bd) Thanks [@lambertjosh](https://github.com/lambertjosh)! - Change the default value of auto-approval for reading outside workspace to false
+
 ## 4.139.0
 
 ### Minor Changes
